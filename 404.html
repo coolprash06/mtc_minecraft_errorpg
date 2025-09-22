@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>404 — Chunk Not Found</title>
+<meta name="description" content="Mine the right blocks (4-0-4) to repair the page." />
+<style>
+  :root{
+    --bg:#0b1020; --fg:#eef5ff; --muted:#9fb0c4; --accent:#22c55e; --stone:#6b7280; --dirt:#7b5a3a;
+    --grass:#2e8a3a; --ore:#3abff8;
+  }
+  @media (prefers-color-scheme:light){
+    :root{ --bg:#f4f7fb; --fg:#0b1020; --muted:#475569; --accent:#16a34a; --stone:#9aa1ad; --dirt:#9b6a43; --grass:#3aa154; --ore:#0ea5e9; }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; display:grid; place-items:center; background:
+      radial-gradient(1200px 800px at 70% -10%, rgba(34,197,94,.15), transparent 60%),
+      linear-gradient(#0b1020, #0b1020) no-repeat, var(--bg);
+    color:var(--fg); font:600 16px/1.4 system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  .wrap{ width:min(920px,94vw); padding:24px }
+  header{ text-align:center; margin-bottom:12px }
+  h1{ font-size:clamp(2rem,6vw,3.2rem); margin:0 0 .25rem; letter-spacing:.5px }
+  .lead{ color:var(--muted); margin:0 0 1rem }
+  .world{
+    display:grid; grid-template-columns:repeat(12, minmax(18px,1fr));
+    gap:6px; padding:12px; border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border:1px solid rgba(255,255,255,.09); backdrop-filter: blur(6px);
+  }
+  .block{
+    position:relative; aspect-ratio:1/1; border-radius:6px; cursor:pointer; user-select:none;
+    display:grid; place-items:center; font-weight:800; font-size:clamp(.8rem,2.4vw,1.1rem);
+    text-shadow:0 1px 0 rgba(0,0,0,.35);
+  }
+  .block:focus-visible{ outline:3px solid var(--accent); outline-offset:2px }
+  .b-stone{ background:
+      linear-gradient(135deg, rgba(255,255,255,.15), rgba(0,0,0,.15)),
+      repeating-linear-gradient(45deg, var(--stone) 0 6px, #505867 6px 12px);
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.15);
+  }
+  .b-dirt{ background:
+      linear-gradient(135deg, rgba(255,255,255,.08), rgba(0,0,0,.12)),
+      repeating-linear-gradient(45deg, var(--dirt) 0 8px, #6b4429 8px 16px);
+  }
+  .b-grass{ background:
+      linear-gradient(0deg, rgba(0,0,0,.2) 0 40%, transparent 40% 100%),
+      linear-gradient(#2f6f34, #2f6f34) 0 0/100% 42% no-repeat,
+      repeating-linear-gradient(45deg, #267c33 0 8px, var(--grass) 8px 16px);
+  }
+  .b-ore{
+    background:
+      radial-gradient(circle at 20% 25%, var(--ore) 0 7px, transparent 8px),
+      radial-gradient(circle at 70% 65%, var(--ore) 0 8px, transparent 9px),
+      radial-gradient(circle at 55% 30%, var(--ore) 0 5px, transparent 6px),
+      repeating-linear-gradient(45deg, var(--stone) 0 6px, #505867 6px 12px);
+    border:1px solid rgba(0,0,0,.2);
+  }
+  .hpbar{position:absolute; inset:auto 6px 6px; height:6px; border-radius:6px; background:rgba(255,255,255,.15)}
+  .hpbar i{display:block; height:100%; width:100%; border-radius:inherit; background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e)}
+  .pop{
+    position:absolute; inset:0; display:grid; place-items:center; border-radius:6px;
+    background:rgba(0,0,0,.55); color:#fff; font-weight:900; opacity:0; transition:opacity .16s;
+  }
+  .block:active .pop{opacity:1}
+  .hidden{display:none !important}
+
+  .buttons{ display:flex; justify-content:center; gap:12px; margin:16px 0 6px; flex-wrap:wrap }
+  .btn{ appearance:none; border:0; border-radius:999px; padding:12px 18px; cursor:pointer;
+    background:#111827; color:#e5e7eb; font-weight:800; letter-spacing:.2px; box-shadow:0 6px 16px rgba(0,0,0,.18) }
+  .btn.alt{ background:transparent; color:var(--fg); border:1.5px solid rgba(255,255,255,.22) }
+  .hint{ text-align:center; color:var(--muted); font-weight:600; margin:8px 0 2px }
+
+  /* pixel pointer */
+  .cursor-pick{ cursor:crosshair }
+  /* confetti */
+  .confetti{ position:fixed; inset:0; pointer-events:none; overflow:hidden }
+  .confetti i{ position:absolute; font-style:normal; animation:fall 900ms ease-out forwards; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)) }
+  @keyframes fall { to{ transform:translate(var(--tx), 88vh) rotate(var(--rot)); opacity:0 } }
+  footer{ text-align:center; margin-top:8px; color:var(--muted); font-weight:600 }
+  a{ color:var(--accent); text-decoration:none }
+</style>
+</head>
+<body class="cursor-pick">
+  <div class="wrap" role="main">
+    <header>
+      <h1>404 — Chunk Not Found</h1>
+      <p class="lead">Mine the right blocks to fix the world. Tip: try <strong>4-0-4</strong>…</p>
+    </header>
+
+    <!-- Accessible status -->
+    <p id="status" class="visually-hidden" aria-live="polite"></p>
+
+    <!-- “World” grid -->
+    <section class="world" aria-label="Block grid. Activate blocks to mine them.">
+      <!-- We’ll programmatically fill the grid; three special ore blocks carry digits 4,0,4 -->
+    </section>
+
+    <div id="ctas" class="hidden">
+      <div class="buttons">
+        <a class="btn" href="/">Go Home</a>
+        <a class="btn alt" href="https://github.com/issues/new" target="_blank" rel="noopener">Report issue</a>
+      </div>
+      <p class="hint">Keyboard: press <kbd>4</kbd><kbd>0</kbd><kbd>4</kbd> to auto-repair • Mobile-friendly • No external assets</p>
+    </div>
+
+    <footer>Built for <strong>MTC × OhCrop</strong> — voxel vibes, zero dependencies. <a href="https://pages.github.com/">GitHub Pages</a></footer>
+  </div>
+
+  <div class="confetti" aria-hidden="true"></div>
+
+<script>
+(() => {
+  const world = document.querySelector('.world');
+  const status = document.getElementById('status');
+  const ctas = document.getElementById('ctas');
+  const confettiLayer = document.querySelector('.confetti');
+
+  // Build a 12x8 grid with a mix of blocks; embed three “digit” ore blocks: 4, 0, 4
+  const W=12, H=8;
+  const types = ['b-stone','b-dirt','b-grass'];
+  const specialDigits = [{d:'4'},{d:'0'},{d:'4'}];
+
+  // Random positions for specials that aren’t adjacent horizontally (for a small hunt)
+  function uniquePos(){
+    let taken=new Set();
+    return function pick(){
+      let p;
+      do { p = Math.floor(Math.random()*W*H); } while(taken.has(p) || taken.has(p-1) || taken.has(p+1));
+      taken.add(p); return p;
+    }
+  }
+  const pickPos = uniquePos();
+  const specialIdx = specialDigits.map(()=>pickPos());
+
+  for(let i=0;i<W*H;i++){
+    const div = document.createElement('button');
+    div.className = 'block ' + (Math.random()<.15?'b-stone':types[Math.floor(Math.random()*types.length)]);
+    div.setAttribute('aria-label','Block: mine with Enter or click');
+    div.style.border = '1px solid rgba(0,0,0,.15)';
+    div.style.padding = '0';
+    div.style.backgroundClip = 'padding-box';
+    div.dataset.hp = 3;
+
+    // special ore blocks
+    const k = specialIdx.indexOf(i);
+    if(k>-1){
+      div.className = 'block b-ore';
+      div.dataset.digit = specialDigits[k].d;
+      const tag = document.createElement('span');
+      tag.className='pop';
+      tag.textContent = specialDigits[k].d;
+      div.appendChild(tag);
+    }else{
+      const pop=document.createElement('span'); pop.className='pop'; pop.textContent='⛏'; div.appendChild(pop);
+    }
+
+    // HP bar
+    const hp = document.createElement('div'); hp.className='hpbar';
+    const fill = document.createElement('i'); hp.appendChild(fill); div.appendChild(hp);
+
+    div.addEventListener('click', ()=>hit(div, fill));
+    div.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); hit(div, fill); } });
+
+    world.appendChild(div);
+  }
+
+  let sequence = "";
+  let solved = false;
+
+  function hit(block, fill){
+    if(solved) return;
+    const hp = (+block.dataset.hp||1)-1;
+    block.dataset.hp = hp;
+    fill.style.width = (hp/3*100)+'%';
+    announce(hp>0 ? 'Chipping…' : 'Block mined.');
+
+    // “break” animation
+    block.animate([{transform:'translateY(0)'},{transform:'translateY(2px)'}],{duration:90});
+
+    if(hp<=0){
+      // Reveal digit if any
+      if(block.dataset.digit){
+        block.querySelector('.pop').style.opacity=1;
+        setTimeout(()=>{ block.style.visibility='hidden'; }, 120);
+        sequence += block.dataset.digit;
+        if(sequence.length>3) sequence = sequence.slice(-3);
+        if(sequence==='404') complete(block);
+        else announce(`Found ${block.dataset.digit}. Sequence: ${sequence.split('').join('-')}`);
+      }else{
+        // Normal block removed
+        block.style.visibility='hidden';
+      }
+    }
+  }
+
+  // Keyboard easter egg: typing 404 anywhere
+  window.addEventListener('keydown', (e)=>{
+    if(solved) return;
+    if(!/\d/.test(e.key)) return;
+    sequence = (sequence + e.key).slice(-3);
+    if(sequence==='404') complete();
+  });
+
+  function complete(el){
+    solved=true;
+    announce('Nice! Sequence 4-0-4 matched. World repaired.');
+    popConfetti(innerWidth/2, innerHeight*0.3);
+    ctas.classList.remove('hidden');
+  }
+
+  function announce(msg){ status.textContent = msg; }
+
+  function popConfetti(x,y){
+    for(let i=0;i<64;i++){
+      const el = document.createElement('i');
+      el.textContent = ['🟫','🟩','⬜️','🪨','💎','✨'][Math.floor(Math.random()*6)];
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.setProperty('--tx', (Math.random()*2-1)*320 + 'px');
+      el.style.setProperty('--rot', (Math.random()*720-360) + 'deg');
+      confettiLayer.appendChild(el);
+      setTimeout(()=>el.remove(), 950);
+    }
+  }
+
+  // Initial little bounce to invite interaction
+  world.animate([{transform:'translateY(4px)'},{transform:'translateY(0)'}],{duration:400, easing:'ease-out'});
+})();
+</script>
+</body>
+</html>
