@@ -1,110 +1,158 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>404 — Chunk Not Found</title>
-<meta name="description" content="Mine the right blocks (4-0-4) to repair the page." />
+<meta name="description" content="Mine 4-0-4 to repair the page. Minecraft-inspired 404 for MTC × OhCrop.">
 <style>
+  /* ---------- THEME ---------- */
   :root{
-    --bg:#0b1020; --fg:#eef5ff; --muted:#9fb0c4; --accent:#22c55e; --stone:#6b7280; --dirt:#7b5a3a;
-    --grass:#2e8a3a; --ore:#3abff8;
+    --bg-deep:#0a0f1e; --bg-top:#0e1730;
+    --fg:#eaf2ff; --muted:#9fb0c4; --accent:#22c55e;
+    --stone:#8692a3; --dirt:#8a5e3a; --grass:#34a853; --ore:#38bdf8;
+    --panel:#0f162c; --panel-bd:rgba(255,255,255,.08);
+    --size:clamp(38px, 5.2vw, 56px);   /* voxel size */
+    --gap:clamp(3px, .6vw, 6px);
   }
   @media (prefers-color-scheme:light){
-    :root{ --bg:#f4f7fb; --fg:#0b1020; --muted:#475569; --accent:#16a34a; --stone:#9aa1ad; --dirt:#9b6a43; --grass:#3aa154; --ore:#0ea5e9; }
+    :root{
+      --bg-deep:#eaf2ff; --bg-top:#dfe9ff;
+      --fg:#0a0f1e; --muted:#334155; --accent:#16a34a;
+      --stone:#a6adb8; --dirt:#a77345; --grass:#2f9b4d; --ore:#0ea5e9;
+      --panel:#ffffff; --panel-bd:rgba(0,0,0,.10);
+    }
   }
+
+  /* ---------- GLOBAL ---------- */
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; display:grid; place-items:center; background:
-      radial-gradient(1200px 800px at 70% -10%, rgba(34,197,94,.15), transparent 60%),
-      linear-gradient(#0b1020, #0b1020) no-repeat, var(--bg);
-    color:var(--fg); font:600 16px/1.4 system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    margin:0; color:var(--fg);
+    font:600 16px/1.45 system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(1200px 900px at 70% -10%, rgba(56,189,248,.16), transparent 60%),
+      linear-gradient(180deg, var(--bg-top), var(--bg-deep));
   }
-  .wrap{ width:min(920px,94vw); padding:24px }
-  header{ text-align:center; margin-bottom:12px }
-  h1{ font-size:clamp(2rem,6vw,3.2rem); margin:0 0 .25rem; letter-spacing:.5px }
-  .lead{ color:var(--muted); margin:0 0 1rem }
+  .wrap{max-width:1060px;margin:0 auto;padding:28px}
+  header{text-align:center;margin-bottom:14px}
+  h1{
+    margin:.1rem 0 .35rem;
+    font-size:clamp(2.2rem,6.5vw,3.6rem);
+    letter-spacing:.4px;
+    text-shadow:0 2px 8px rgba(0,0,0,.35);
+  }
+  .lead{color:var(--muted);margin:0 0 10px;font-weight:600}
+
+  /* ---------- PANEL ---------- */
+  .panel{
+    margin:16px auto 14px; width:min(960px,96vw);
+    border-radius:22px; padding:18px 18px 22px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border:1px solid var(--panel-bd);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.05),
+      0 12px 26px rgba(0,0,0,.28);
+  }
+  .hud{
+    display:flex; align-items:center; justify-content:space-between;
+    color:var(--muted); font-weight:700; letter-spacing:.2px; margin:0 2px 8px;
+  }
+  .hud .hearts{letter-spacing:1px}
+  .hud .tool{display:flex;gap:8px;align-items:center}
+  .badge{padding:6px 10px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid var(--panel-bd)}
+
+  /* ---------- GRID ---------- */
   .world{
-    display:grid; grid-template-columns:repeat(12, minmax(18px,1fr));
-    gap:6px; padding:12px; border-radius:16px;
-    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-    border:1px solid rgba(255,255,255,.09); backdrop-filter: blur(6px);
+    display:grid;
+    grid-template-columns:repeat(12, var(--size));
+    gap:var(--gap); justify-content:center;
+    padding:6px; margin:auto; user-select:none;
   }
   .block{
-    position:relative; aspect-ratio:1/1; border-radius:6px; cursor:pointer; user-select:none;
-    display:grid; place-items:center; font-weight:800; font-size:clamp(.8rem,2.4vw,1.1rem);
-    text-shadow:0 1px 0 rgba(0,0,0,.35);
+    position:relative; width:var(--size); height:var(--size);
+    border-radius:10px; cursor:pointer; display:grid; place-items:center;
+    border:1px solid rgba(0,0,0,.20);
+    box-shadow:
+      inset 0 3px 0 rgba(255,255,255,.08),
+      inset 0 -4px 0 rgba(0,0,0,.18),
+      0 3px 8px rgba(0,0,0,.25);
+    transition:transform .08s ease, box-shadow .08s ease, filter .12s;
   }
+  .block:hover{ transform:translateY(-1px); filter:saturate(1.05) }
+  .block:active{ transform:translateY(1px) }
   .block:focus-visible{ outline:3px solid var(--accent); outline-offset:2px }
-  .b-stone{ background:
-      linear-gradient(135deg, rgba(255,255,255,.15), rgba(0,0,0,.15)),
-      repeating-linear-gradient(45deg, var(--stone) 0 6px, #505867 6px 12px);
-    box-shadow:inset 0 0 0 2px rgba(0,0,0,.15);
+  .b-stone{
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.14), rgba(0,0,0,.18)),
+      repeating-linear-gradient(45deg, var(--stone) 0 9px, #6d7789 9px 18px);
   }
-  .b-dirt{ background:
-      linear-gradient(135deg, rgba(255,255,255,.08), rgba(0,0,0,.12)),
-      repeating-linear-gradient(45deg, var(--dirt) 0 8px, #6b4429 8px 16px);
+  .b-dirt{
+    background:
+      linear-gradient(135deg, rgba(255,255,255,.10), rgba(0,0,0,.14)),
+      repeating-linear-gradient(45deg, var(--dirt) 0 12px, #6f4c2b 12px 24px);
   }
-  .b-grass{ background:
-      linear-gradient(0deg, rgba(0,0,0,.2) 0 40%, transparent 40% 100%),
-      linear-gradient(#2f6f34, #2f6f34) 0 0/100% 42% no-repeat,
-      repeating-linear-gradient(45deg, #267c33 0 8px, var(--grass) 8px 16px);
+  .b-grass{
+    background:
+      linear-gradient(0deg, rgba(0,0,0,.25) 0 44%, transparent 44% 100%),
+      linear-gradient(#2f6f34, #2f6f34) 0 0/100% 46% no-repeat,
+      repeating-linear-gradient(45deg, #2b8e39 0 10px, var(--grass) 10px 20px);
   }
   .b-ore{
     background:
-      radial-gradient(circle at 20% 25%, var(--ore) 0 7px, transparent 8px),
-      radial-gradient(circle at 70% 65%, var(--ore) 0 8px, transparent 9px),
-      radial-gradient(circle at 55% 30%, var(--ore) 0 5px, transparent 6px),
-      repeating-linear-gradient(45deg, var(--stone) 0 6px, #505867 6px 12px);
-    border:1px solid rgba(0,0,0,.2);
+      radial-gradient(circle at 22% 28%, var(--ore) 0 8px, transparent 9px),
+      radial-gradient(circle at 70% 64%, var(--ore) 0 9px, transparent 10px),
+      radial-gradient(circle at 56% 34%, var(--ore) 0 6px, transparent 7px),
+      repeating-linear-gradient(45deg, var(--stone) 0 9px, #6d7789 9px 18px);
   }
-  .hpbar{position:absolute; inset:auto 6px 6px; height:6px; border-radius:6px; background:rgba(255,255,255,.15)}
+  .hpbar{position:absolute; inset:auto 8px 8px; height:7px; border-radius:7px; background:rgba(255,255,255,.16)}
   .hpbar i{display:block; height:100%; width:100%; border-radius:inherit; background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e)}
-  .pop{
-    position:absolute; inset:0; display:grid; place-items:center; border-radius:6px;
-    background:rgba(0,0,0,.55); color:#fff; font-weight:900; opacity:0; transition:opacity .16s;
-  }
-  .block:active .pop{opacity:1}
+  .digit{ position:absolute; inset:0; display:grid; place-items:center; font:900 clamp(.9rem,2.6vw,1.3rem)/1 monospace; color:#fff; text-shadow:0 2px 6px rgba(0,0,0,.45); opacity:0; transition:opacity .12s }
+  .block.solved .digit{ opacity:1 }
   .hidden{display:none !important}
 
+  /* ---------- CTAs ---------- */
   .buttons{ display:flex; justify-content:center; gap:12px; margin:16px 0 6px; flex-wrap:wrap }
-  .btn{ appearance:none; border:0; border-radius:999px; padding:12px 18px; cursor:pointer;
-    background:#111827; color:#e5e7eb; font-weight:800; letter-spacing:.2px; box-shadow:0 6px 16px rgba(0,0,0,.18) }
+  .btn{
+    appearance:none; border:0; border-radius:999px; padding:12px 18px; cursor:pointer;
+    background:#111827; color:#e5e7eb; font-weight:800; letter-spacing:.2px;
+    box-shadow:0 6px 16px rgba(0,0,0,.18)
+  }
   .btn.alt{ background:transparent; color:var(--fg); border:1.5px solid rgba(255,255,255,.22) }
   .hint{ text-align:center; color:var(--muted); font-weight:600; margin:8px 0 2px }
 
-  /* pixel pointer */
-  .cursor-pick{ cursor:crosshair }
-  /* confetti */
+  /* ---------- CONFETTI ---------- */
   .confetti{ position:fixed; inset:0; pointer-events:none; overflow:hidden }
   .confetti i{ position:absolute; font-style:normal; animation:fall 900ms ease-out forwards; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)) }
-  @keyframes fall { to{ transform:translate(var(--tx), 88vh) rotate(var(--rot)); opacity:0 } }
-  footer{ text-align:center; margin-top:8px; color:var(--muted); font-weight:600 }
+  @keyframes fall{ to{ transform:translate(var(--tx), 90vh) rotate(var(--rot)); opacity:0 } }
+
+  footer{ text-align:center; margin-top:10px; color:var(--muted); font-weight:600 }
   a{ color:var(--accent); text-decoration:none }
 </style>
 </head>
-<body class="cursor-pick">
+<body>
   <div class="wrap" role="main">
     <header>
       <h1>404 — Chunk Not Found</h1>
-      <p class="lead">Mine the right blocks to fix the world. Tip: try <strong>4-0-4</strong>…</p>
+      <p class="lead">Mine the right blocks to repair the world. Hint: <strong>4-0-4</strong>.</p>
     </header>
 
-    <!-- Accessible status -->
-    <p id="status" class="visually-hidden" aria-live="polite"></p>
+    <div class="panel">
+      <div class="hud">
+        <div class="hearts" aria-hidden="true">♥ ♥ ♥</div>
+        <div class="tool"><span class="badge">⛏ Pickaxe ready</span><span class="badge">Keyboard: Enter/Space</span></div>
+      </div>
 
-    <!-- “World” grid -->
-    <section class="world" aria-label="Block grid. Activate blocks to mine them.">
-      <!-- We’ll programmatically fill the grid; three special ore blocks carry digits 4,0,4 -->
-    </section>
+      <section class="world" aria-label="Block grid. Activate blocks to mine them."></section>
+    </div>
 
     <div id="ctas" class="hidden">
       <div class="buttons">
         <a class="btn" href="/">Go Home</a>
         <a class="btn alt" href="https://github.com/issues/new" target="_blank" rel="noopener">Report issue</a>
       </div>
-      <p class="hint">Keyboard: press <kbd>4</kbd><kbd>0</kbd><kbd>4</kbd> to auto-repair • Mobile-friendly • No external assets</p>
+      <p class="hint">Tip: typing <kbd>4</kbd><kbd>0</kbd><kbd>4</kbd> also works.</p>
     </div>
 
     <footer>Built for <strong>MTC × OhCrop</strong> — voxel vibes, zero dependencies. <a href="https://pages.github.com/">GitHub Pages</a></footer>
@@ -115,120 +163,98 @@
 <script>
 (() => {
   const world = document.querySelector('.world');
-  const status = document.getElementById('status');
   const ctas = document.getElementById('ctas');
   const confettiLayer = document.querySelector('.confetti');
 
-  // Build a 12x8 grid with a mix of blocks; embed three “digit” ore blocks: 4, 0, 4
+  /* Build a denser, cleaner grid */
   const W=12, H=8;
   const types = ['b-stone','b-dirt','b-grass'];
-  const specialDigits = [{d:'4'},{d:'0'},{d:'4'}];
+  const specials = ['4','0','4'];
 
-  // Random positions for specials that aren’t adjacent horizontally (for a small hunt)
-  function uniquePos(){
-    let taken=new Set();
+  function uniquePos() {
+    let used = new Set();
     return function pick(){
       let p;
-      do { p = Math.floor(Math.random()*W*H); } while(taken.has(p) || taken.has(p-1) || taken.has(p+1));
-      taken.add(p); return p;
+      do { p = Math.floor(Math.random()*W*H); } while( used.has(p) || used.has(p-1) || used.has(p+1) );
+      used.add(p); return p;
     }
   }
-  const pickPos = uniquePos();
-  const specialIdx = specialDigits.map(()=>pickPos());
+  const pick = uniquePos();
+  const sIdx = specials.map(()=>pick());
 
   for(let i=0;i<W*H;i++){
-    const div = document.createElement('button');
-    div.className = 'block ' + (Math.random()<.15?'b-stone':types[Math.floor(Math.random()*types.length)]);
-    div.setAttribute('aria-label','Block: mine with Enter or click');
-    div.style.border = '1px solid rgba(0,0,0,.15)';
-    div.style.padding = '0';
-    div.style.backgroundClip = 'padding-box';
-    div.dataset.hp = 3;
+    const b = document.createElement('button');
+    b.className = 'block ' + (Math.random()<.15 ? 'b-stone' : types[Math.floor(Math.random()*types.length)]);
+    b.setAttribute('aria-label','Block: mine with Enter or click');
+    b.dataset.hp = 3;
 
-    // special ore blocks
-    const k = specialIdx.indexOf(i);
+    /* Ore with digits */
+    const k = sIdx.indexOf(i);
+    const hp = document.createElement('div'); hp.className='hpbar';
+    const fill = document.createElement('i'); hp.appendChild(fill); b.appendChild(hp);
+
     if(k>-1){
-      div.className = 'block b-ore';
-      div.dataset.digit = specialDigits[k].d;
-      const tag = document.createElement('span');
-      tag.className='pop';
-      tag.textContent = specialDigits[k].d;
-      div.appendChild(tag);
-    }else{
-      const pop=document.createElement('span'); pop.className='pop'; pop.textContent='⛏'; div.appendChild(pop);
+      b.className = 'block b-ore';
+      b.dataset.digit = specials[k];
+      const d = document.createElement('span');
+      d.className='digit'; d.textContent = specials[k];
+      b.appendChild(d);
     }
 
-    // HP bar
-    const hp = document.createElement('div'); hp.className='hpbar';
-    const fill = document.createElement('i'); hp.appendChild(fill); div.appendChild(hp);
+    b.addEventListener('click', ()=>hit(b, fill));
+    b.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); hit(b, fill); } });
 
-    div.addEventListener('click', ()=>hit(div, fill));
-    div.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); hit(div, fill); } });
-
-    world.appendChild(div);
+    world.appendChild(b);
   }
 
-  let sequence = "";
-  let solved = false;
+  let seq = "", solved = false;
 
-  function hit(block, fill){
+  function hit(b, fill){
     if(solved) return;
-    const hp = (+block.dataset.hp||1)-1;
-    block.dataset.hp = hp;
+    const hp = (+b.dataset.hp||1)-1;
+    b.dataset.hp = hp;
     fill.style.width = (hp/3*100)+'%';
-    announce(hp>0 ? 'Chipping…' : 'Block mined.');
-
-    // “break” animation
-    block.animate([{transform:'translateY(0)'},{transform:'translateY(2px)'}],{duration:90});
+    b.animate([{transform:'translateY(0)'},{transform:'translateY(2px)'}],{duration:90});
 
     if(hp<=0){
-      // Reveal digit if any
-      if(block.dataset.digit){
-        block.querySelector('.pop').style.opacity=1;
-        setTimeout(()=>{ block.style.visibility='hidden'; }, 120);
-        sequence += block.dataset.digit;
-        if(sequence.length>3) sequence = sequence.slice(-3);
-        if(sequence==='404') complete(block);
-        else announce(`Found ${block.dataset.digit}. Sequence: ${sequence.split('').join('-')}`);
+      if(b.dataset.digit){
+        b.classList.add('solved'); // reveal digit
+        setTimeout(()=>{ b.style.visibility='hidden'; }, 140);
+        seq = (seq + b.dataset.digit).slice(-3);
+        if(seq==='404') return complete();
       }else{
-        // Normal block removed
-        block.style.visibility='hidden';
+        b.style.visibility='hidden';
       }
     }
   }
 
-  // Keyboard easter egg: typing 404 anywhere
-  window.addEventListener('keydown', (e)=>{
+  /* Keyboard easter egg */
+  window.addEventListener('keydown', e=>{
     if(solved) return;
     if(!/\d/.test(e.key)) return;
-    sequence = (sequence + e.key).slice(-3);
-    if(sequence==='404') complete();
+    seq = (seq + e.key).slice(-3);
+    if(seq==='404') complete();
   });
 
-  function complete(el){
-    solved=true;
-    announce('Nice! Sequence 4-0-4 matched. World repaired.');
-    popConfetti(innerWidth/2, innerHeight*0.3);
+  function complete(){
+    solved = true;
+    popConfetti(innerWidth/2, innerHeight*0.28);
     ctas.classList.remove('hidden');
   }
 
-  function announce(msg){ status.textContent = msg; }
-
   function popConfetti(x,y){
-    for(let i=0;i<64;i++){
+    const icons = ['🟫','🟩','⬜️','🪨','💎','✨'];
+    for(let i=0;i<76;i++){
       const el = document.createElement('i');
-      el.textContent = ['🟫','🟩','⬜️','🪨','💎','✨'][Math.floor(Math.random()*6)];
+      el.textContent = icons[Math.floor(Math.random()*icons.length)];
       el.style.left = x + 'px';
       el.style.top = y + 'px';
-      el.style.setProperty('--tx', (Math.random()*2-1)*320 + 'px');
+      el.style.setProperty('--tx', (Math.random()*2-1)*340 + 'px');
       el.style.setProperty('--rot', (Math.random()*720-360) + 'deg');
       confettiLayer.appendChild(el);
       setTimeout(()=>el.remove(), 950);
     }
   }
-
-  // Initial little bounce to invite interaction
-  world.animate([{transform:'translateY(4px)'},{transform:'translateY(0)'}],{duration:400, easing:'ease-out'});
 })();
 </script>
 </body>
