@@ -7,17 +7,22 @@
 <meta name="description" content="Drag the crop to find the missing idea. Built for MTC × OhCrop." />
 <style>
 /* =========================
-   THEME & BASE
+   THEME & BASE (MTC × OhCrop)
    ========================= */
 :root{
-  --bg:#070b16; --bg2:#0e1730; --fg:#eaf2ff; --muted:#9fb0c4; --accent:#8b5cf6; /* OhCrop-ish purple */
-  --green:#22c55e; --panel:rgba(255,255,255,.06); --panelbd:rgba(255,255,255,.10);
+  --bg:#070b16; --bg2:#0e1730; --fg:#eaf2ff; --muted:#9fb0c4;
+  --accent:#8b5cf6;  /* OhCrop purple */
+  --green:#16a34a;   /* MTC green (success) */
+  --panel:rgba(255,255,255,.06); --panelbd:rgba(255,255,255,.10);
 }
 @media (prefers-color-scheme:light){
   :root{
-    --bg:#f6f8ff; --bg2:#e9efff; --fg:#0b1220; --muted:#435266; --accent:#6d28d9; --panel:rgba(0,0,0,.04); --panelbd:rgba(0,0,0,.08);
+    --bg:#f6f8ff; --bg2:#e9efff; --fg:#0b1220; --muted:#435266;
+    --accent:#6d28d9; --green:#22c55e;
+    --panel:rgba(0,0,0,.04); --panelbd:rgba(0,0,0,.08);
   }
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -29,7 +34,7 @@ body{
   overflow-x:hidden;
 }
 
-/* Subtle film grain */
+/* subtle film grain */
 body::before{
   content:""; position:fixed; inset:0; pointer-events:none;
   background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.06"/></svg>');
@@ -55,7 +60,7 @@ h1{
 }
 
 /* =========================
-   “IMAGE” CANVAS
+   STAGE & “PHOTO”
    ========================= */
 .stage{
   position:relative; margin:auto; width:min(880px,92vw); aspect-ratio:16/9; border-radius:18px; overflow:hidden;
@@ -64,15 +69,13 @@ h1{
     linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   border:1px solid var(--panelbd);
 }
-
-/* Abstract colorful background pretending to be a photo */
 .scene{
-  position:absolute; inset:0; filter:blur(8px) saturate(1.2) brightness(0.9); transform:scale(1.05);
+  position:absolute; inset:0; filter:blur(8px) saturate(1.2) brightness(0.92); transform:scale(1.05);
   background:
-    radial-gradient(circle at 20% 30%, #10b981 0 18%, transparent 19%),
-    radial-gradient(circle at 80% 70%, #60a5fa 0 20%, transparent 21%),
-    radial-gradient(circle at 65% 20%, #f472b6 0 16%, transparent 17%),
-    conic-gradient(from 140deg at 50% 50%, #111827, #0b1220, #111827);
+    radial-gradient(600px 420px at 18% 22%, rgba(16,185,129,.95) 0 26%, transparent 27%),
+    radial-gradient(520px 380px at 78% 32%, rgba(99,102,241,.95) 0 22%, transparent 23%),
+    radial-gradient(760px 520px at 64% 78%, rgba(59,130,246,.95) 0 26%, transparent 27%),
+    conic-gradient(from 120deg at 50% 50%, #0b1220, #0f172a, #0b1220);
   transition:filter .5s ease, transform .5s ease;
 }
 .stage.solved .scene{ filter:blur(0) saturate(1.05) brightness(1); transform:scale(1) }
@@ -81,36 +84,41 @@ h1{
    CROP TOOL
    ========================= */
 .crop{
-  --w: 44%; --h: 38%;
+  --w:44%; --h:38%;
   position:absolute; left:28%; top:30%; width:var(--w); height:var(--h);
-  border:2px solid var(--accent); border-radius:12px; box-shadow:0 0 0 9999px rgba(0,0,0,.25) inset, 0 10px 28px rgba(0,0,0,.25);
+  border:2px solid var(--accent); border-radius:12px;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.25) inset, 0 10px 28px rgba(0,0,0,.25);
   display:grid; grid-template-columns:1fr 1fr 1fr; grid-template-rows:1fr 1fr 1fr; cursor:move;
   transition:box-shadow .15s ease, border-color .15s ease;
+  animation:floaty 3s ease-in-out 2;
 }
+@keyframes floaty { 0%{transform:translateY(0)} 50%{transform:translateY(-4px)} 100%{transform:translateY(0)} }
 .crop:focus-visible{ outline:4px solid #fff; outline-offset:3px }
 .stage.solved .crop{ pointer-events:none; border-color:var(--green); box-shadow:0 0 0 9999px rgba(0,0,0,.05) inset, 0 12px 30px rgba(34,197,94,.35) }
 
-/* Thirds grid lines */
+/* thirds grid */
 .crop .g{border:1px dashed rgba(255,255,255,.18)}
 .crop .g:nth-child(2), .crop .g:nth-child(3){border-left:none}
 .crop .g:nth-child(4), .crop .g:nth-child(7){border-top:none}
 
-/* Handles */
+/* handles */
 .handle{
   position:absolute; width:22px; height:22px; background:var(--accent); border-radius:50%;
-  border:2px solid rgba(255,255,255,.9); box-shadow:0 2px 10px rgba(0,0,0,.35); cursor:grab;
+  border:2px solid rgba(255,255,255,.9); box-shadow:0 2px 10px rgba(0,0,0,.35), 0 0 0 0 rgba(139,92,246,0); cursor:grab;
 }
 .handle:active{ cursor:grabbing }
 .h-nw{left:-12px; top:-12px} .h-ne{right:-12px; top:-12px}
 .h-sw{left:-12px; bottom:-12px} .h-se{right:-12px; bottom:-12px}
+@keyframes ping{ to{ box-shadow:0 0 0 10px rgba(139,92,246,0); } }
+.handle.h-se{ animation:ping 1.6s ease-out 4 }
 
-/* Target marker (hidden hotspot) */
+/* goal hotspot */
 .hotspot{
   position:absolute; left:58%; top:54%; width:80px; height:60px; border-radius:14px;
   outline:2px dashed rgba(255,255,255,.15); outline-offset:-6px; pointer-events:none;
 }
 
-/* Progress ring */
+/* progress ring */
 .progress{
   position:absolute; right:12px; top:12px; width:44px; height:44px; border-radius:50%;
   background:conic-gradient(var(--green) 0deg, rgba(255,255,255,.2) 0deg 360deg);
@@ -119,27 +127,25 @@ h1{
 }
 
 /* =========================
-   CTAs & FOOTER
+   CTAS & FOOTER
    ========================= */
 .buttons{ display:flex; justify-content:center; gap:12px; margin:18px 0 6px; flex-wrap:wrap }
 .btn{
   appearance:none; border:0; border-radius:999px; padding:12px 18px; cursor:pointer;
-  background:#111827; color:#e5e7eb; font-weight:800; letter-spacing:.2px;
-  box-shadow:0 6px 16px rgba(0,0,0,.18)
+  background:#111827; color:#e5e7eb; font-weight:800; letter-spacing:.2px; box-shadow:0 6px 16px rgba(0,0,0,.18)
 }
 .btn.alt{ background:transparent; color:var(--fg); border:1.5px solid rgba(255,255,255,.22) }
 .hint{ text-align:center; color:var(--muted); font-weight:600; margin:8px 0 2px }
-
-.hidden{display:none !important}
+.hidden{display:none!important}
 footer{ text-align:center; margin-top:10px; color:var(--muted); font-weight:600 }
 a{ color:var(--accent); text-decoration:none }
 
-/* Confetti */
+/* confetti */
 .confetti{ position:fixed; inset:0; pointer-events:none; overflow:hidden }
 .confetti i{ position:absolute; font-style:normal; animation:fall 900ms ease-out forwards; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)) }
 @keyframes fall{ to{ transform:translate(var(--tx), 90vh) rotate(var(--rot)); opacity:0 } }
 
-/* Visually hidden for SR-only text */
+/* screen-reader only */
 .visually-hidden{position:absolute!important;clip:rect(1px,1px,1px,1px)!important;padding:0!important;border:0!important;height:1px!important;width:1px!important;overflow:hidden!important}
 </style>
 </head>
@@ -153,11 +159,8 @@ a{ color:var(--accent); text-decoration:none }
     <div class="panel">
       <section class="stage" aria-label="Image stage with a draggable crop tool.">
         <div class="scene" aria-hidden="true"></div>
-
-        <!-- Hidden goal area (hotspot) -->
         <div class="hotspot" aria-hidden="true"></div>
 
-        <!-- Crop tool -->
         <div class="crop" id="crop" tabindex="0" role="application" aria-roledescription="crop tool" aria-label="Drag to move. Use arrow keys; hold Shift for fine steps.">
           <div class="g"></div><div class="g"></div><div class="g"></div>
           <div class="g"></div><div class="g"></div><div class="g"></div>
@@ -175,9 +178,10 @@ a{ color:var(--accent); text-decoration:none }
     <div id="ctas" class="hidden">
       <div class="buttons">
         <a class="btn" href="/">Go Home</a>
+        <button id="resetBtn" class="btn alt" type="button">Reset puzzle</button>
         <a class="btn alt" href="https://github.com/issues/new" target="_blank" rel="noopener">Report issue</a>
       </div>
-      <p class="hint">Tip: keyboard works too (arrows / Shift+arrows). Easter egg: type <kbd>4</kbd><kbd>0</kbd><kbd>4</kbd> for instant reveal.</p>
+      <p class="hint">Keyboard works too (arrows / Shift+arrows). Easter egg: type <kbd>4</kbd><kbd>0</kbd><kbd>4</kbd> for instant reveal.</p>
     </div>
 
     <footer>Built for <strong>MTC × OhCrop</strong> — interactive crop puzzle, single file, zero deps. <a href="https://pages.github.com/">GitHub Pages</a></footer>
@@ -191,21 +195,31 @@ a{ color:var(--accent); text-decoration:none }
   const crop = document.getElementById('crop');
   const hotspot = document.querySelector('.hotspot');
   const progress = document.getElementById('progress');
-  const scene = document.querySelector('.scene');
   const ctas = document.getElementById('ctas');
   const live = document.getElementById('live');
   const confettiLayer = document.querySelector('.confetti');
 
   let solved = false, dragging = false, resizing = null;
-  let startX=0, startY=0, startRect=null;
+  let startX=0, startY=0, startRect=null, seq='';
 
   function rect(el){ return el.getBoundingClientRect(); }
-
   function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+  // Camera shutter micro-sound (WebAudio)
+  function shutter() {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    const a = new Ctx();
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = 'triangle'; o.frequency.setValueAtTime(600, a.currentTime);
+    g.gain.setValueAtTime(0.0001, a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.3, a.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.20);
+    o.connect(g).connect(a.destination); o.start(); o.stop(a.currentTime + 0.22);
+  }
 
   function setCrop(left, top, width, height){
     const srect = rect(stage);
-    // store as % to keep responsive
     crop.style.left  = (clamp(left, srect.left, srect.right - width) - srect.left)/srect.width*100 + '%';
     crop.style.top   = (clamp(top,  srect.top,  srect.bottom - height) - srect.top)/srect.height*100 + '%';
     crop.style.width = (clamp(width,  srect.width*0.18, srect.width*0.9))/srect.width*100 + '%';
@@ -222,11 +236,8 @@ a{ color:var(--accent); text-decoration:none }
     progress.style.background = `conic-gradient(var(--green) ${pct*3.6}deg, rgba(255,255,255,.2) 0 360deg)`;
     progress.textContent = pct + '%';
     if(!solved){
-      if(pct >= 92){ // tolerance
-        complete();
-      }else{
-        live.textContent = `Crop alignment ${pct} percent`;
-      }
+      if(pct >= 92){ complete(); }
+      else { live.textContent = `Crop alignment ${pct} percent`; }
     }
   }
 
@@ -235,49 +246,42 @@ a{ color:var(--accent); text-decoration:none }
     stage.classList.add('solved');
     ctas.classList.remove('hidden');
     live.textContent = 'Nice! Composition locked. Revealing…';
+    shutter();
     popConfetti(innerWidth/2, rect(stage).top + rect(stage).height*0.2);
   }
 
-  // DRAG crop
+  // drag & resize
   crop.addEventListener('pointerdown', (e)=>{
     if(solved) return;
-    if(e.target.classList.contains('handle')){
-      resizing = e.target.dataset.corner;
-    }else{
-      dragging = true;
-    }
+    if(e.target.classList.contains('handle')){ resizing = e.target.dataset.corner; }
+    else { dragging = true; }
     startX = e.clientX; startY = e.clientY; startRect = rect(crop);
     crop.setPointerCapture(e.pointerId);
   });
   crop.addEventListener('pointermove', (e)=>{
     if(!(dragging||resizing)) return;
     const dx = e.clientX - startX, dy = e.clientY - startY;
-    const srect = rect(stage);
     let L = startRect.left, T = startRect.top, W = startRect.width, H = startRect.height;
-
-    if(dragging){
-      setCrop(L+dx, T+dy, W, H);
-    }else if(resizing){
+    if(dragging){ setCrop(L+dx, T+dy, W, H); }
+    else{
       if(resizing.includes('n')){ T += dy; H -= dy; }
       if(resizing.includes('s')){ H += dy; }
       if(resizing.includes('w')){ L += dx; W -= dx; }
       if(resizing.includes('e')){ W += dx; }
-      // minimum sizes
-      W = Math.max(W, srect.width*0.18);
-      H = Math.max(H, srect.height*0.18);
-      setCrop(L, T, W, H);
+      const s = rect(stage);
+      W = Math.max(W, s.width*0.18); H = Math.max(H, s.height*0.18);
+      setCrop(L,T,W,H);
     }
   });
   crop.addEventListener('pointerup', ()=>{ dragging=false; resizing=null; });
 
-  // KEYBOARD move (arrows); Shift for fine steps
+  // keyboard move
   crop.addEventListener('keydown', (e)=>{
     if(solved) return;
     const step = e.shiftKey ? 2 : 12;
-    const r = rect(crop);
     if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
       e.preventDefault();
-      const s = rect(stage);
+      const r = rect(crop);
       let L=r.left, T=r.top, W=r.width, H=r.height;
       if(e.key==='ArrowLeft')  L -= step;
       if(e.key==='ArrowRight') L += step;
@@ -287,20 +291,28 @@ a{ color:var(--accent); text-decoration:none }
     }
   });
 
-  // Easter egg: typing 404 anywhere → auto-solve
-  let seq = '';
+  // easter egg: typing 404
   window.addEventListener('keydown', (e)=>{
     if(solved) return;
     if(!/\d/.test(e.key)) return;
     seq = (seq + e.key).slice(-3);
     if(seq==='404'){
-      const h = rect(hotspot), s = rect(stage);
+      const h = rect(hotspot);
       setCrop(h.left, h.top, h.width, h.height);
       complete();
     }
   });
 
-  // Init progress once layout is ready
+  // reset
+  document.getElementById('resetBtn')?.addEventListener('click', () => {
+    solved = false; seq = '';
+    stage.classList.remove('solved'); ctas.classList.add('hidden');
+    const s = stage.getBoundingClientRect();
+    setCrop(s.left + s.width*0.28, s.top + s.height*0.30, s.width*0.44, s.height*0.38);
+    live.textContent = 'Puzzle reset. Drag the crop to the right spot.';
+  });
+
+  // init
   window.addEventListener('load', updateProgress);
   window.addEventListener('resize', updateProgress);
 
